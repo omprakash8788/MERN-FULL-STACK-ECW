@@ -106,6 +106,27 @@ const registerUser = async(req, res)=>{
 
 // Route for Admin login
 const adminLogin=async(req,res)=>{
+    try {
+        // first, we get user email and password.
+        const {email, password}=req.body;
+        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
+            // if both email and password will matching then we will create token and will send that token to the admin user 
+            const token = jwt.sign(email+password, process.env.JWT_SECRET);
+            // After that we will send this token to admin user 
+            res.json({success:true, token})
+
+        }
+        else{
+            // here if the email and password not match then we will excute else statement
+            res.json({success:false, message:"Invalid credentials"})
+        }
+
+        
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message:error.message})
+        
+    }
 
 }
 
