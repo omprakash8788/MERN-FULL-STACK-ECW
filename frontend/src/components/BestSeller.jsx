@@ -12,17 +12,21 @@ const BestSeller = () => {
   // Now from this data we will get those data where the best seller property is true.
   // For that we will add one state variable
   const [bestSeller, setBestSeller] = useState([]);
+  // bestSeller
+  console.log(bestSeller);
+  
 
   useEffect(() => {
-    const bestProduct = products.filter((item) => item.
-    bestseller
+    const bestProduct =  products.filter((item) => (item.
+    bestSeller)
     ); // here if it is true then filter method will save the products data in this "bestProduct" variables
 
     // After that called the setter function
     console.log(bestProduct);
     
     setBestSeller(bestProduct.slice(0, 5));
-  }, []);
+  }, [products]);
+  // so, whenever this products is update thsn this function will be excauted and it is display the bestSeller products
 
   return (
     <div className="my-10">
