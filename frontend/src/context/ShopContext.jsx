@@ -1,7 +1,9 @@
 import { createContext, useEffect, useState } from "react";
-import { products } from "../assets/frontendassets/assets";
+
 import { toast } from "react-toastify";
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios'
+
 
 // 1. create
 export const ShopContext = createContext();
@@ -10,10 +12,17 @@ export const ShopContext = createContext();
 const ShopContextProvider = (props) => {
   const currency = "$";
   const delivery_fee = 10;
+  const backenUrl = import.meta.env.VITE_BACKEND_URL ;
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
+  const [products, setProducts]=useState([])
+  // For Login 
+  // So when we will authenticated then we will get the token and we will store them in this token state variable.
+  const [token , setToken]=useState('');
+
   const navigate =useNavigate();
+
 
   const addToCart = async (itemId, size) => {
     if (!size) {
@@ -94,6 +103,44 @@ const ShopContextProvider = (props) => {
     console.log(cartItems);
   }, [cartItems]);
 
+ const getProductsData = async()=>{
+  try {
+    // call the api
+    const response = await axios.get(backenUrl + '/api/product/list')
+    // console.log(response.data);
+    // After that we will store this product data in products state variable.
+    // first, we check condition if response.data.success is true then we store that data in setProducts setter function.
+    if(response.data.success){
+      setProducts(response.data.products)
+    }
+    // if condition is false 
+    else{
+      toast.error(response.data.message)
+    }
+    
+  } catch (error) {
+    console.log(error);
+    toast.error(error.message)
+    
+    
+  }
+ }
+
+//  After that call the getProductsData  function
+useEffect(()=>{
+ getProductsData();
+},[])
+
+// To prevent login page - so when we refreash web page , our token will not removed
+useEffect(()=>{
+  // Add the condition - if the token is not avaliable and in the local storage token is avaliable in that case we will store local storage token in the token state variable 
+
+  if(!token && localStorage.getItem('token')){
+       setToken(localStorage.getItem('token'))
+  }
+},[])
+
+
   const value = {
     // when ever we will add any variable or state or function with in this value object we can access it any component using the context API
     products,
@@ -108,7 +155,10 @@ const ShopContextProvider = (props) => {
     getCartCount,
     updateQuantity,
     getCartAmount,
-    navigate
+    navigate, 
+    backenUrl,
+    token,
+    setToken
   };
   return (
     <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>

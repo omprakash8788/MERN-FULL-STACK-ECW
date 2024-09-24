@@ -17,7 +17,8 @@ const Add = ({token}) => {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Men");
   const [subCategory, setSubCategory] = useState("Topwear");
-  const [bestseller, setBestseller] = useState(false);
+  const [bestSeller, setBestSeller] = useState(false);
+  // bestSeller
   const [sizes, setSizes] = useState([]);
   // console.log(sizes);
 
@@ -35,7 +36,7 @@ const Add = ({token}) => {
       formData.append("price", price);
       formData.append("category", category);
       formData.append("subCategory", subCategory);
-      formData.append("bestseller", bestseller);
+      formData.append("bestSeller", bestSeller);
       formData.append("sizes", JSON.stringify(sizes));
       
       image1 && formData.append("image1", image1) // this && operator help to prevent anykind of error, if we dont want to push four images at the same time, but admin want add only two images so it will not though an error.
@@ -296,7 +297,7 @@ const Add = ({token}) => {
 
       {/* Another div tag for checkbox */}
       <div className="flex gap-2 mt-2">
-        <input onChange={()=>setBestseller(prev=>!prev)} checked={bestseller} type="checkbox" id="bestseller" />
+        <input onChange={()=>setBestSeller(prev=>!prev)} checked={bestSeller} type="checkbox" id="bestseller" />
         <label className="cursor-pointer" htmlFor="bestseller">
           Add to bestseller
         </label>
