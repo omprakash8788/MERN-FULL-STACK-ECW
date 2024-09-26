@@ -8,8 +8,25 @@ const Navbar = () => {
   // create state variable to handle menu for mobile
   const [visible, setVisible] = useState(false);
   // 1. here we have to get the setShowSearch function from ShopContext api
-  const {setShowSearch, getCartCount}=useContext(ShopContext) 
 
+  // So, first here get the navigate, token and setToken, setCartItems from the ShopContext
+  const {setShowSearch, getCartCount, navigate, token, setToken, setCartItems}=useContext(ShopContext) 
+
+
+  // After that we will create function for logout.
+  const logout = ()=>{
+    // we will navigate user to the login page.
+    navigate('/login')
+    // After that, first we will remove the token from the local storage
+    localStorage.removeItem('token') //key name is token
+    // After that clear the state variable
+    setToken('');
+    // After that when we will be logout clear the cartItems
+    setCartItems({});
+    // After that link this logout function to logout key.
+    // Go down see the p tag there is logout option , link there.
+
+  }
   return (
     <div className="flex items-center justify-between py-5 font-medium">
       <Link to='/'>
@@ -45,20 +62,35 @@ const Navbar = () => {
           className="w-5 cursor-pointer"
         />
         <div className="group relative">
-          <Link to='/login'>
+          {/* <Link to='/login'>
           <img
             src={assets.profile_icon}
             className="w-5 cursor-pointer"
             alt="profile-icon"
           />
-          </Link>
-          <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
+          </Link> */}
+          {/* To hide */}
+          <img
+          onClick={()=> token ? null : navigate('/login')}
+            src={assets.profile_icon}
+            className="w-5 cursor-pointer"
+            alt="profile-icon"
+          />
+           {/* ---- Dropdown Menu ----- */}
+           {/* So, now we will display this div when we are logged in*/}
+           {
+            token &&   
+            // So, whenever the token is avaliable then only this div will be display.
+             <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
             <div className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded">
               <p className="cursor-pointer hover:text-black">My Profile</p>
-              <p className="cursor-pointer hover:text-black">Orders</p>
-              <p className="cursor-pointer hover:text-black">Logout</p>
+              {/* add onclick propety on orders */}
+              <p onClick={()=>navigate('/orders')} className="cursor-pointer hover:text-black">Orders</p>
+              {/* Link logout function */}
+              <p onClick={logout} className="cursor-pointer hover:text-black">Logout</p>
             </div>
           </div>
+           }       
         </div>
         {/* now crate link tag */}
         <Link to="/cart" className="relative">
