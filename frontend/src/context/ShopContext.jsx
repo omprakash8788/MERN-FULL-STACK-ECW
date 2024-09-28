@@ -1,9 +1,8 @@
 import { createContext, useEffect, useState } from "react";
 
 import { toast } from "react-toastify";
-import {useNavigate} from 'react-router-dom';
-import axios from 'axios'
-
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // 1. create
 export const ShopContext = createContext();
@@ -12,17 +11,16 @@ export const ShopContext = createContext();
 const ShopContextProvider = (props) => {
   const currency = "$";
   const delivery_fee = 10;
-  const backenUrl = import.meta.env.VITE_BACKEND_URL ;
+  const backenUrl = import.meta.env.VITE_BACKEND_URL;
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
-  const [products, setProducts]=useState([])
-  // For Login 
+  const [products, setProducts] = useState([]);
+  // For Login
   // So when we will authenticated then we will get the token and we will store them in this token state variable.
-  const [token , setToken]=useState('');
+  const [token, setToken] = useState("");
 
-  const navigate =useNavigate();
-
+  const navigate = useNavigate();
 
   const addToCart = async (itemId, size) => {
     if (!size) {
@@ -43,6 +41,19 @@ const ShopContextProvider = (props) => {
     }
 
     setCartItems(cartData);
+
+    if (token) {
+      try {
+        await axios.post(
+          backenUrl + "/api/cart/add",
+          { itemId, size },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.log(error);
+        toast.error(error.message);
+      }
+    }
   };
 
   // 1. create function for get cart count
@@ -70,14 +81,28 @@ const ShopContextProvider = (props) => {
 
   // here we will create one update function using that clear the cart data or we can also modified the cart items
   const updateQuantity = async (itemId, size, quantity) => {
-    // after that when we have created the addToCart function there we are taking the itemId and size, so in this update quantity we will take itemId, size, and quantity
+   
 
-    // first we will create the copy of the cartItem
     let cartData = structuredClone(cartItems);
 
-    cartData[itemId][size] = quantity; // so our cart data will be modified
-    // and we will set cart data in the cartItems state
+    cartData[itemId][size] = quantity; 
+
     setCartItems(cartData);
+
+    // After that we will be add the Api in this update quantity, so that when we are add the cart page and update any quantity then that quantity will be updated in the database.
+     if(token){
+      // if the token is available it means we are loggigned
+      try {
+        // So, here we will call the Api
+        await axios.post(backenUrl + '/api/cart/update', {itemId, size, quantity}, {headers:{token}})
+        // Body = {itemId, size, quantity} <--- In body we are providing itemId, size, quantity.
+        // headers = {headers:{token}} <--- In headers we are providing token.
+        // " await axios.post(backenUrl + '/api/cart/update', {itemId, size, quantity}, {headers:{token}})" -> So, whenever we call this Api , it will update the carts.
+      } catch (error) {
+        console.log(error);
+        toast.error(error.message)
+      }
+     }
   };
 
   //  Total cart amount logic
@@ -103,43 +128,60 @@ const ShopContextProvider = (props) => {
     console.log(cartItems);
   }, [cartItems]);
 
- const getProductsData = async()=>{
-  try {
-    // call the api
-    const response = await axios.get(backenUrl + '/api/product/list')
-    // console.log(response.data);
-    // After that we will store this product data in products state variable.
-    // first, we check condition if response.data.success is true then we store that data in setProducts setter function.
-    if(response.data.success){
-      setProducts(response.data.products)
+  const getProductsData = async () => {
+    try {
+      // call the api
+      const response = await axios.get(backenUrl + "/api/product/list");
+     
+      if (response.data.success) {
+        setProducts(response.data.products);
+      }
+      // if condition is false
+      else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
     }
-    // if condition is false 
-    else{
-      toast.error(response.data.message)
+  };
+
+  // here we will add the logic so that whenever we will reload the web page then the cart data will be update from the database and reflect on UI side.
+  const getUserCart = async (token)=>{
+    try {
+      const response = await axios.post(backenUrl + "/api/cart/get",{}, {headers:{token}} )
+      // {} <-- here we dont send anything in the body,
+      // headers - {headers:{token}} <--- sending token in headers
+       if(response.data.success){
+        // if it is true, it means we have receive the cart data
+        // And we will store the cart data in the state variable
+        setCartItems(response.data.cartData)
+       }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message)
+      
+      
     }
-    
-  } catch (error) {
-    console.log(error);
-    toast.error(error.message)
-    
-    
+    // After that run this function when our page is reload.
+
   }
- }
 
-//  After that call the getProductsData  function
-useEffect(()=>{
- getProductsData();
-},[])
 
-// To prevent login page - so when we refreash web page , our token will not removed
-useEffect(()=>{
-  // Add the condition - if the token is not avaliable and in the local storage token is avaliable in that case we will store local storage token in the token state variable 
+  //  After that call the getProductsData  function
+  useEffect(() => {
+    getProductsData();
+  }, []);
 
-  if(!token && localStorage.getItem('token')){
-       setToken(localStorage.getItem('token'))
-  }
-},[])
-
+  // To prevent login page - so when we refreash web page , our token will not removed
+  useEffect(() => {
+   
+    if (!token && localStorage.getItem("token")) {
+      setToken(localStorage.getItem("token"));
+      
+      getUserCart(localStorage.getItem("token"))
+    }
+  }, []);
 
   const value = {
     // when ever we will add any variable or state or function with in this value object we can access it any component using the context API
@@ -155,10 +197,10 @@ useEffect(()=>{
     getCartCount,
     updateQuantity,
     getCartAmount,
-    navigate, 
+    navigate,
     backenUrl,
     token,
-    setToken
+    setToken,
   };
   return (
     <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>

@@ -13,7 +13,8 @@ const Cart = () => {
   // console.log(cartData);
 
   useEffect(() => {
-    // here add the logic so that when ever the cart page will be loaded then the products data and cartItems data will be combine together to create one array and we will store in this "cartData" state variable.
+    if(products.length > 0 ){
+       // here add the logic so that when ever the cart page will be loaded then the products data and cartItems data will be combine together to create one array and we will store in this "cartData" state variable.
     const tempData = [];
     // after that run for in loop
     for (const items in cartItems) {
@@ -34,8 +35,10 @@ const Cart = () => {
     // console.log(tempData);
     // after that set the tempData into the cartData
     setCartData(tempData);
+    }
+   
     // In dependecy, we provides cartItems so when ever our cartItems will be updated then the setCartData function will be excauted.
-  }, [cartItems]);
+  }, [cartItems, products]);
 
   return (
     <div className="border-t pt-14">
