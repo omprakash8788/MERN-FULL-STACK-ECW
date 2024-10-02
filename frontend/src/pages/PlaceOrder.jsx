@@ -69,70 +69,60 @@ const PlaceOrder = () => {
               // if itemInfo avaliable in that case , in this product data "cartItems[items]" we will add the size and quantity.
               itemInfo.size = item;
               itemInfo.quantity = cartItems[items][item];
-              // after that we have to add this item object " orderItems = [];" in this array.
+
               orderItems.push(itemInfo);
             }
           }
         }
       }
-      // 9
-      // Now check this logic working or not.
-      // console.log(orderItems);
-      // order data.
+
       let orderData = {
         address: formData,
         items: orderItems,
         amount: getCartAmount() + delivery_fee,
-        // Now using this orderdata we can placed the order.
       };
-      // After that use switch case for different payment method.
       switch (method) {
-        // Api calls for cash on delivery order(COD)
-        case 'cod':
-          const response= await axios.post(backenUrl + '/api/order/place', orderData, {headers:{token}})
+        case "cod":
+          const response = await axios.post(
+            backenUrl + "/api/order/place",
+            orderData,
+            { headers: { token } }
+          );
           console.log(response.data);
-          
-          if(response.data.success){
-            // If it is true in that case we will add the setCartItems and we will provide the empty object, its means the order will be placed. in frontend also we are clearing the cart data
-            setCartItems({})
-            // After that we will navigate the users on orders page.
-            navigate('/orders')
+
+          if (response.data.success) {
+            setCartItems({});
+            navigate("/orders");
+          } else {
+            toast.error(response.data.message);
           }
-          else{
-            toast.error(response.data.message)
+          break;
+
+        // After this break statement we will add one more case for stripe payment method.
+        case "stripe":
+          // here add one Api call to our stripe end point
+          const responseStripe = await axios.post(
+            backenUrl + "/api/order/stripe",
+            orderData,
+            { headers: { token } }
+          );
+          if (responseStripe.data.success) {
+            // if true, then we get session url.
+            const { session_url } = responseStripe.data;
+            // After that on session_url send the users
+            window.location.replace(session_url);
+          } else {
+            toast.error(responseStripe.data.message);
           }
+
           break;
 
         default:
           break;
       }
-
-      // switch (method) {
-      //   // Api calls for cash on delivery order(COD)
-      //   case 'cod': {
-      //     const response = await axios.post(backendUrl + '/api/order/place', orderData, { headers: { token } });
-      //     console.log(response.data);
-      
-      //     if (response.data.success) {
-      //       // If it is true, set the cart items to an empty object to clear the cart
-      //       setCartItems({});
-      //       // Navigate the user to the orders page
-      //       navigate('/orders');
-      //     } else {
-      //       toast.error(response.data.message);
-      //     }
-      //     break;
-      //   }
-      
-      //   default:
-      //     break;
-      // }
-      
-      
-
     } catch (error) {
       console.log(error);
-      toast.error(error.message)
+      toast.error(error.message);
     }
   };
 
