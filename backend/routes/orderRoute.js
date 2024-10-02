@@ -11,7 +11,7 @@ const orderRouter = express.Router()
 // After that we will use controller function and orderRouter to create multiple endpoints
 
 // Admin features
-orderRouter.post('list',adminAuth ,allOrders) // This route for the admin panel. using this we can get the all orders details and we will display on the admin panel.
+orderRouter.post('/list',adminAuth ,allOrders) // This route for the admin panel. using this we can get the all orders details and we will display on the admin panel.
 // adminAuth - For admin authentication
 orderRouter.post('/status',adminAuth ,updateStatus)
 
