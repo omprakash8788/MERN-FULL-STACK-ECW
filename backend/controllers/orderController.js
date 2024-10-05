@@ -3,6 +3,9 @@ import userModel from "../models/userModel.js";
 
 import Stripe from "stripe";
 
+import razorpay from 'razorpay'
+
+
 // global variables
 const currency = "inr";
 const deliveryCharge = 10;
@@ -10,6 +13,16 @@ const deliveryCharge = 10;
 // 1. gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Now we can use this stripe in our project.
+
+// 1. razorpay initialize
+const razorpayInstance = new razorpay({
+  // here we will defined key id and key secret.
+  key_id: process.env.Razorpay_key_id,
+  key_secret: process.env.Razorpay_key_secret
+})
+// Now we can use this in our project.
+
+
 
 // Placing order using COD method.
 
@@ -66,7 +79,7 @@ const placeOrderStripe = async (req, res) => {
 
     // Now using this orderData we will create new orders
     const newOrder = new orderModel(orderData);
-    await newOrder.save();
+    await newOrder.save(); // save in database
 
     //   After placing the order we will create one line items, using that we can excaute the payment method.
     const line_items = items.map((item) => ({
@@ -143,7 +156,57 @@ const verifyStripe = async (req, res)=>{
 }
 
 // Placeing order using razor pay method
-const placeOrderRazorPay = async (req, res) => {};
+const placeOrderRazorPay = async (req, res) => {
+     try {
+      // first we will Destructuring the orders details
+        // here we get product data from req . body
+    const { userId, items, amount, address } = req.body;
+   
+
+    // After that we create the order data.
+
+    const orderData = {
+      userId,
+      items,
+      amount,
+      address,
+      paymentMethod: "Razorpay",
+      payment: false,
+      date: Date.now(),
+    };
+    // Next we creating order data using this orderData.
+
+    // Now using this orderData we will create new orders
+    const newOrder = new orderModel(orderData);
+    await newOrder.save(); // here we save in database.
+
+    // After we will create one option using that we can execute the payment of razorpay.
+    const options = {
+      amount: amount * 100,
+      currency: currency.toUpperCase(),
+      receipt: newOrder._id.toString()
+    }
+    // After that using this options we will create a new order of razorpay.
+    await razorpayInstance.orders.create(options, (error, order)=>{
+        if(error){
+         console.log(error);
+         return res.json({success:false, message:error})
+         
+        }
+        // after that we have dont any error then we will generate one res
+        res.json({success:true, order})
+
+    })
+      
+     } catch (error) {
+      console.log(error);
+    res.json({ success: false, message: error.message });
+
+      
+      
+     }
+
+};
 
 // After that create controller function using that we can display all the orders on our admin panel
 

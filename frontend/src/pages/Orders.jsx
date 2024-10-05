@@ -4,9 +4,7 @@ import Title from "../components/Title";
 import axios from "axios";
 
 const Orders = () => {
-  // here first we will be get the products data and currency symbol from the context api
   const {currency, backenUrl, token } = useContext(ShopContext);
-   // { products, currency } = useContext(ShopContext);
   //  using this backenUrl and token we will fatch the orders.
   // And after fatching we will store in state variable.
   const [orderData, setOrderData]=useState([])
