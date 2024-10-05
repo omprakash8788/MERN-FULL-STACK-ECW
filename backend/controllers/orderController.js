@@ -154,7 +154,6 @@ const verifyStripe = async (req, res)=>{
     }
 
 }
-
 // Placeing order using razor pay method
 const placeOrderRazorPay = async (req, res) => {
      try {
@@ -207,6 +206,35 @@ const placeOrderRazorPay = async (req, res) => {
      }
 
 };
+// Verify razorpay payment.
+const verifyRazorPay = async(req, res)=>{
+  try {
+    const {userId, razorpay_order_id} = req.body
+    // userId, razorpay_order_id , we are getting from body
+    // After that from this "razorpay_order_id" we have to find the orders.
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+    //  fetch(razorpay_order_id) <-- This is a method where we provide razor pay order id.
+    // check the result.
+    // console.log(orderInfo);
+    // After that we will check if status is paid it means total payment is complete. So, in that case we will use this "  receipt: '670103cbb1fe5849dfee1e88'" where we have use the orderId. for this orderId we will change the payment true. And we will clear the user cart.
+    if(orderInfo.status === "paid"){
+      // orderInfo.status === "paid" of match its means our payment is successful.
+      // After that make the payment property true.
+      await orderModel.findByIdAndUpdate(orderInfo.receipt, {payment:true}); //it will update the payment status in database.
+      // After that we have to clear the users cart data 
+      await userModel.findByIdAndUpdate(userId, {cartData:{}})
+      //  userId, {cartData:{}} <-- It will clear the cart user data from UI as well backend.
+      // After that generate response.
+      res.json({success:true, message:"Payment Successful"})
+    }
+    else{
+      res.json({success:false, message:"Payment failed"})
+    }
+  } catch (error) {
+    console.log(error); 
+    res.json({success:false, message:error.message})
+  }
+}
 
 // After that create controller function using that we can display all the orders on our admin panel
 
@@ -267,5 +295,6 @@ export {
   allOrders,
   userOrders,
   updateStatus,
-  verifyStripe
+  verifyStripe,
+  verifyRazorPay
 };
