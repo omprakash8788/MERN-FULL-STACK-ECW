@@ -35,31 +35,55 @@ const PlaceOrder = () => {
   });
   //2. After that to store the value in this object, we will add one onchange handler function
   const onChangeHandler = (e) => {
-    const name = e.target.name; // using this we will get the name property of the input fields and it will be store in this name variable
-    // After the get the value of the input fields
+    const name = e.target.name; // using this we will get the name 
     const value = e.target.value;
-    //After that to update this object using this name and value property.
     setFormData((data) => ({ ...data, [name]: value }));
   };
-  //3 After that link this formData and  onChangeHandler to every input fields
 
-  // 6. create onSubmit handler function
+  
+  //1. intit pay for razor pay
+  const initPay = (order)=>{
+    // in parameter we will write order so we will set object detail in this paramerter order.
+    const options = {
+      // First, add the razor pay key Id.
+      // "Razorpay_key_id ="rzp_test_yCdJquTC727i5J"" but in frontend we need this only so add this one in frontend .env file
+
+      // After that first we will defined the key.
+      key: import.meta.env.Vite_Razorpay_key_id,
+      // After that add the amount property.
+      amount: order.amount,
+      // After that add the currency
+      currency: order.currency,
+      // After that add the product name.
+      name: "Order Payment",
+      description: "Order Payment",
+      // After that provide order id
+      order_id: order.id,
+      receipt: order.receipt,
+      // After that here we will create the handler function so that we will call the payment integration Api.
+      handler: async (response)=>{
+        console.log(response);
+        
+
+      } 
+    }
+    // After that here create one variable
+    const rzp = new window.Razorpay(options)
+    // after that open at razor pay
+    rzp.open()//After adding this it will create one popup where we can execute our payment
+  }
+
   const onSubmitHandler = async (e) => {
-    // link this function to form tag.
     e.preventDefault(); // prevent form after submission
 
-    // After that write the logic.
-    // So, that whenever we will place the order using the COD then the order will be placed.
+  
 
     // 8.
     try {
       let orderItems = [];
-      // In this array we will add the all product from our cartItem
-      // for that use one for In Loop
       for (const items in cartItems) {
         for (const item in cartItems[items]) {
           if (cartItems[items][item] > 0) {
-            // cartItems[items][item]>0 - It means the product is added in the cart and the quantity is > 0
             const itemInfo = structuredClone(
               products.find((product) => product._id === items)
             );
@@ -115,6 +139,22 @@ const PlaceOrder = () => {
             toast.error(responseStripe.data.message);
           }
 
+          break;
+          // one more case for razorpay payment method.
+          case 'razorpay' :
+            // After that call the razorpay Api
+            const responseRazorpay = await axios.post(backenUrl + "/api/order/razorpay", orderData, {headers:{token}})
+            // orderData = in body we are sending orderData
+            // {headers:{token}} => In headers we are providing token
+
+            if(responseRazorpay.data.success){
+              // if true
+              // console.log(responseRazorpay.data.order);
+              initPay(responseRazorpay.data.order);
+
+
+              
+            }
           break;
 
         default:
