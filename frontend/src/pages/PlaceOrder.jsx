@@ -63,8 +63,25 @@ const PlaceOrder = () => {
       // After that here we will create the handler function so that we will call the payment integration Api.
       handler: async (response)=>{
         console.log(response);
-        
+        // After that we will send our orderId in backend.
+        try {
+          const {data} = await axios.post(backenUrl + "/api/order/verifyRazorpay", response, {headers:{token}} )
+        //  response <-- In body we are providing response
+          // {headers:{token}}  <-- In headers i am providing token.
+          if(data.success){
+            // if true it means our payment is successfull and it is verify.
+            // in that case we will navigate the users on the orders page.
+            navigate("/orders")
+            // After that clear the cart
+            setCartItems({})
 
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error(error)
+          
+          
+        }
       } 
     }
     // After that here create one variable
